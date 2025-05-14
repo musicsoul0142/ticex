@@ -1,14 +1,11 @@
 package moffy.ticex.modules;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import moffy.ticex.TicEX;
@@ -17,7 +14,6 @@ import moffy.ticex.client.ShaderInstanceMap;
 import moffy.ticex.client.ToolShaderMap;
 import moffy.ticex.lib.hook.EmbossmentModifierHook;
 import moffy.ticex.lib.registry.TicEXItemDeferredRegisterExtension;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -172,7 +168,7 @@ public class TicEXRegistry {
     public static FluidObject<UnplaceableFluid> MOLTEN_RECONSTRUCTION_CORE = null;
     public static List<FluidObject<UnplaceableFluid>> RF_FURNACE_FUELS = new ArrayList<>(); 
     public static FlowingFluidObject<ForgeFlowingFluid> MOLTEN_INFINITY = null;
-    public static FlowingFluidObject<ForgeFlowingFluid> MOLTEN_NEUTRONIUM = null;
+    public static FlowingFluidObject<ForgeFlowingFluid> MOLTEN_NEUTRON = null;
     public static FlowingFluidObject<ForgeFlowingFluid> MOLTEN_CRYSTAL_MATRIX = null;
     public static FlowingFluidObject<ForgeFlowingFluid> MOLTEN_ETHERIC = null;
 
@@ -213,6 +209,7 @@ public class TicEXRegistry {
     public static StaticModifier<Modifier> GRAVITY_MODIFIER = null;
     public static StaticModifier<Modifier> HURRICANE_MODIFIER = null;
     public static StaticModifier<Modifier> DEFINE_MODIFIER = null;
+    public static DynamicModifier MODEM_MODIFIER = null;
 
     public static void addTabItems(ItemDisplayParameters itemDisplayParameters, CreativeModeTab.Output output) {
         for(RegistryObject<Item> itemObject : ITEMS.getEntries()){
