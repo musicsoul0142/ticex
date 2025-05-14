@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import moffy.addonapi.ModsAvailableCondition;
 import moffy.ticex.TicEX;
+import moffy.ticex.datagen.fluid.FluidTextureProvider;
 import moffy.ticex.datagen.general.CommonRecipeProvider;
 import moffy.ticex.datagen.general.LootProvider;
 import moffy.ticex.datagen.general.tag.BlockTagProvider;
@@ -42,6 +43,7 @@ public class TicEXGatherDataEvent {
         generator.addProvider(server, new FluidTagProvider(packOutput, lookupProvider, existingFileHelper));
 
         //common
+        generator.addProvider(client, new FluidTextureProvider(packOutput));
         generator.addProvider(server, new CommonRecipeProvider(packOutput));
         generator.addProvider(server, new LootProvider(packOutput));
 
