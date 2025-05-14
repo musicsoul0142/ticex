@@ -52,7 +52,7 @@ public class ModifiableItemCustomRenderer extends BlockEntityWithoutLevelRendere
         Set<PartPredicate> seen = new HashSet<>();
 
         pPoseStack.pushPose();
-        pModel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(pPoseStack, pModel, pDisplayContext, true);
+        pModel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(pPoseStack, pModel, pDisplayContext, false);
         for (var model : pModel.getRenderPasses(pItemStack, true)) {
             for (var rendertype : model.getRenderTypes(pItemStack, true)) {
                 RandomSource randomsource = RandomSource.create();
@@ -82,36 +82,38 @@ public class ModifiableItemCustomRenderer extends BlockEntityWithoutLevelRendere
 
         for(BakedQuad bakedquad : pQuads) {
 
-            RenderQuadArgsWrapper defaultWrapper = new RenderQuadArgsWrapper(renderType, pPoseStack, bakedquad, pCombinedOverlay, 1.0f, 1.0f, 1.0f, pCombinedLight, pCombinedOverlay, flag, pBuffer, pDisplayContext, tool);
+            RenderQuadArgsWrapper defaultWrapper = new RenderQuadArgsWrapper(renderType, pPoseStack, bakedquad, 1.0f, 1.0f, 1.0f, 1.0f, pCombinedLight, pCombinedOverlay, flag, pBuffer, pDisplayContext, tool);
 
-            PartPredicate predicate = ((ShaderToolQuad)bakedquad).getPredicate();
-            ShaderProvider<RenderQuadArgsWrapper> provider = TicEXRegistry.TOOL_SHADERS.getProvider(predicate);
+            if(bakedquad instanceof ShaderToolQuad){
+                PartPredicate predicate = ((ShaderToolQuad)bakedquad).getPredicate();
+                ShaderProvider<RenderQuadArgsWrapper> provider = TicEXRegistry.TOOL_SHADERS.getProvider(predicate);
 
-            Consumer<RenderQuadArgsWrapper> renderMethod = (wrapper->{
-                wrapper.renderQuadsWithConsumer();
-            });
-            
-            if(provider != null){
-                //underlay
-                if(!seenList.contains(predicate)){
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.UNDERLAY, provider::renderUnderLayer, defaultWrapper));
-                    seenList.add(predicate);
-                }
+                Consumer<RenderQuadArgsWrapper> renderMethod = (wrapper->{
+                    wrapper.renderQuadsWithConsumer();
+                });
+                
+                if(provider != null){
+                    //underlay
+                    if(!seenList.contains(predicate)){
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.UNDERLAY, provider::renderUnderLayer, defaultWrapper));
+                        seenList.add(predicate);
+                    }
 
-                //overlay
-                if(predicate.isModifierId()){
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MODIFIER, provider::renderOverLayer, defaultWrapper));
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MODIFIER_WITH_OVERLAY, renderMethod, defaultWrapper));
-                } else if(predicate.isMaterialVariantId()){
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MATERIAL, provider::renderOverLayer, defaultWrapper));
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MATERIAL_WITH_OVERLAY, renderMethod, defaultWrapper));
-                }
-            } else {
-                //normal items
-                if(predicate.isModifierId()){
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.NORMAL_MODIFIER, renderMethod, defaultWrapper));
-                } else if(predicate.isMaterialVariantId()){
-                    addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.NORMAL_MATERIAL, renderMethod, defaultWrapper));
+                    //overlay
+                    if(predicate.isModifierId()){
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MODIFIER, provider::renderOverLayer, defaultWrapper));
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MODIFIER_WITH_OVERLAY, renderMethod, defaultWrapper));
+                    } else if(predicate.isMaterialVariantId()){
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MATERIAL, provider::renderOverLayer, defaultWrapper));
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MATERIAL_WITH_OVERLAY, renderMethod, defaultWrapper));
+                    }
+                } else {
+                    //normal items
+                    if(predicate.isModifierId()){
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.NORMAL_MODIFIER, renderMethod, defaultWrapper));
+                    } else if(predicate.isMaterialVariantId()){
+                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.NORMAL_MATERIAL, renderMethod, defaultWrapper));
+                    }
                 }
             }
         }
