@@ -2,6 +2,7 @@ package moffy.ticex.event;
 
 import java.util.concurrent.CompletableFuture;
 
+import moffy.addonapi.ModsAvailableCondition;
 import moffy.ticex.TicEX;
 import moffy.ticex.datagen.general.CommonRecipeProvider;
 import moffy.ticex.datagen.general.LootProvider;
@@ -9,19 +10,23 @@ import moffy.ticex.datagen.general.tag.BlockTagProvider;
 import moffy.ticex.datagen.general.tag.FluidTagProvider;
 import moffy.ticex.datagen.general.tag.ItemTagProvider;
 import moffy.ticex.datagen.modifier.ModifierProvider;
-import moffy.ticex.datagen.modifier.ModifierRecipeProvider;
 import moffy.ticex.datagen.modifier.ModifierTagProvider;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = TicEX.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TicEXGatherDataEvent {
+
+    @SubscribeEvent
     public static void gatherData(GatherDataEvent event){
         DataGenerator generator = event.getGenerator();
+        CraftingHelper.register(new ModsAvailableCondition.Serializer());
 
         PackOutput packOutput = generator.getPackOutput();
         CompletableFuture<Provider> lookupProvider = event.getLookupProvider();
@@ -37,15 +42,13 @@ public class TicEXGatherDataEvent {
         generator.addProvider(server, new FluidTagProvider(packOutput, lookupProvider, existingFileHelper));
 
         //common
-        generator.addProvider(client, new FluidTagProvider(packOutput, lookupProvider, existingFileHelper));
         generator.addProvider(server, new CommonRecipeProvider(packOutput));
         generator.addProvider(server, new LootProvider(packOutput));
 
         //modifiers
         generator.addProvider(server, new ModifierProvider(packOutput));
-        generator.addProvider(server, new ModifierRecipeProvider(packOutput));
         generator.addProvider(server, new ModifierTagProvider(packOutput, existingFileHelper));
         
-        
+
     }
 }
