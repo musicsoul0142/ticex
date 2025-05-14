@@ -33,11 +33,11 @@ public class TicEXTaczModule extends AddonModule{
         MinecraftForge.EVENT_BUS.addListener(TicEXTaczEvent::onMelee);
     }
 
-    @OnlyIn(Dist.CLIENT)
+    /* @OnlyIn(Dist.CLIENT)
     @Override
     public void clientSetup(FMLClientSetupEvent event) {
         TicEXRegistry.CUSTOM_MODELS.put(TicEXRegistry.BLITZ_GUN.get(), (originalModel)->{
             return new moffy.ticex.client.CustomModel(originalModel);
         });
-    }
+    } */
 }

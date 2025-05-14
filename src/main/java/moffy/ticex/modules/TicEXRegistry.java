@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import moffy.ticex.TicEX;
@@ -89,7 +90,7 @@ public class TicEXRegistry {
     public static final ToolDefinition GUN_DEFINITION = ToolDefinition.create(new ResourceLocation(TicEX.MODID, "blitz_gun")); 
     public static final ToolDefinition SPELLBOOK_DEFINITION = ToolDefinition.create(new ResourceLocation(TicEX.MODID, "revival_spellbook")); 
 
-    public static final Map<Item, Function<BakedModel, BakedModel>> CUSTOM_MODELS = new HashMap<>();
+    //public static final Map<Predicate<Item>, Function<BakedModel, BakedModel>> CUSTOM_MODELS = new HashMap<>();
     public static final ToolShaderMap.Tool TOOL_SHADERS = new ToolShaderMap.Tool();
     public static final ToolShaderMap.Armor ARMOR_SHADERS = new ToolShaderMap.Armor();
     public static final ShaderInstanceMap SHADER_INSTANCE_MAP = new ShaderInstanceMap();

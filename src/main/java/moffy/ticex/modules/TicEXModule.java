@@ -42,6 +42,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import slimeknights.mantle.recipe.helper.LoadableRecipeSerializer;
@@ -135,5 +136,10 @@ public class TicEXModule extends AddonModule{
         } else {
             TierSortingRegistry.registerTier(InfinityTier.instance, new ResourceLocation(TicEX.MODID, "infinity"), List.of(Tiers.NETHERITE), List.of());
         }
+    }
+
+    @Override
+    public void clientSetup(FMLClientSetupEvent event) {
+        
     }
 }

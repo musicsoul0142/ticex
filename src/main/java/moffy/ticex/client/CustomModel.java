@@ -17,6 +17,7 @@ import net.minecraftforge.client.model.data.ModelData;
 
 public class CustomModel implements BakedModel{
     protected BakedModel original;
+    
     public CustomModel(BakedModel original){
         this.original = original;
     }

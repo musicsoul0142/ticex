@@ -22,6 +22,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Transformation;
 
 import moffy.ticex.TicEX;
+import moffy.ticex.client.CustomModel;
 import moffy.ticex.client.PartPredicate;
 import moffy.ticex.client.ShaderToolQuad;
 import moffy.ticex.modules.TicEXRegistry;
@@ -33,12 +34,10 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraftforge.client.model.BakedModelWrapper;
 import net.minecraftforge.client.model.IModelBuilder;
 import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.mantle.client.model.util.MantleItemLayerModel;
 import slimeknights.mantle.util.ItemLayerPixels;
 import slimeknights.mantle.util.ReversedListBuilder;
@@ -74,7 +73,7 @@ public class ToolModelMixin {
         remap = false
     )
     private static void bakeInternalWithShader(IGeometryBakingContext owner, Function<Material, TextureAtlasSprite> spriteGetter, @Nullable Transformation largeTransforms, List<?> parts, Map<ModifierId, IBakedModifierModel> modifierModels, List<?> firstModifiers, List<MaterialVariantId> materials, @Nullable IToolStackView tool, ItemOverrides overrides, CallbackInfoReturnable<BakedModel> cb){
-        if(tool != null && (TicEXRegistry.TOOL_SHADERS.isToolTarget(tool))){
+        if(tool != null){
             Transformation smallTransforms = Transformation.identity();
 
             
@@ -137,11 +136,11 @@ public class ToolModelMixin {
             }
             }));
             if (largeTransforms == null) {
-                cb.setReturnValue(wrapModel(tool, new UniqueGuiModel.Baked(smallModelBuilder.build(), guiModelBuilder.build())));
+                cb.setReturnValue(wrapModel(tool, new UniqueGuiModel.Baked(wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build()))));
             }
             IModelBuilder<?> largeModelBuilder = makeModelBuilder(owner, overrides, particle);
             largeQuads.build(quads -> quads.forEach(largeModelBuilder::addUnculledFace));
-            cb.setReturnValue(wrapModel(tool, new BakedLargeToolModel(largeModelBuilder.build(), smallModelBuilder.build(), guiModelBuilder.build())));
+            cb.setReturnValue(new BakedLargeToolModel(wrapModel(tool, largeModelBuilder.build()), wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build())));
         }
     }
 
@@ -202,11 +201,7 @@ public class ToolModelMixin {
 
     private static BakedModel wrapModel(IToolStackView tool, BakedModel originalModel){
         if(tool != null){
-            for(Item predicate : TicEXRegistry.CUSTOM_MODELS.keySet()){
-                if(ForgeRegistries.ITEMS.getKey(tool.getItem()).equals(ForgeRegistries.ITEMS.getKey(predicate))){
-                    return TicEXRegistry.CUSTOM_MODELS.get(predicate).apply(originalModel);
-                }
-            }
+            return new CustomModel(originalModel);
         }
         return originalModel;
     }

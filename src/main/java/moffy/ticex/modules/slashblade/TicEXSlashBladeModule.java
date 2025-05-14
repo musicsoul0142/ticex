@@ -74,14 +74,14 @@ public class TicEXSlashBladeModule extends AddonModule{
         });
     }
 
-    @OnlyIn(Dist.CLIENT)
+    /* @OnlyIn(Dist.CLIENT)
     @Override
     public void clientSetup(FMLClientSetupEvent event) {
         moffy.ticex.client.slashblade.SBToolRenderType.init();
         TicEXRegistry.CUSTOM_MODELS.put(TicEXRegistry.REFORGED_SLASHBLADE.get(), (originalModel)->{
             return new moffy.ticex.client.CustomModel(originalModel);
         });
-    }
+    } */
 
     public static boolean isPreviousVersion(){
         return ModList.get().getModFileById("slashblade").versionString().compareTo("1.2.0") < 0;
