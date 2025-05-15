@@ -38,7 +38,7 @@ public class PartPredicate {
     public boolean equals(Object obj) {
         if(obj instanceof PartPredicate){
             PartPredicate other = (PartPredicate)obj;
-            return isModifierId() ? this.modifierId.equals(other.getModifierId()) : this.materialVariantId.getId().equals(other.getMaterialVariantId().getId());
+            return isModifierId() ? this.modifierId.equals(other.getModifierId()) : this.materialVariantId.equals(other.getMaterialVariantId());
         }
         return false;
     }

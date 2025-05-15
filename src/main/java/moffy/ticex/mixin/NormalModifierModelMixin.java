@@ -50,7 +50,7 @@ public class NormalModifierModelMixin {
     )
     public void addQuadsExtension(IToolStackView tool, ModifierEntry entry, Function<Material,TextureAtlasSprite> spriteGetter, Transformation transforms, boolean isLarge, int startTintIndex, Consumer<Collection<BakedQuad>> quadConsumer, @Nullable ItemLayerPixels pixels, CallbackInfo cb) {
         Material spriteName = isLarge ? large : small;
-        if (spriteName != null) {
+        if (spriteName != null && (TicEXRegistry.TOOL_SHADERS.isToolTarget(tool))) {
             TextureAtlasSprite sprite = spriteGetter.apply(spriteName);
             List<BakedQuad>quads = MantleItemLayerModel.getQuadsForSprite(color, -1, sprite, transforms, luminosity, pixels);
             quadConsumer.accept(quads.stream().map(quad -> quad == null ? null : (BakedQuad)new ShaderToolQuad(quad, new PartPredicate(entry.getId()))).toList());

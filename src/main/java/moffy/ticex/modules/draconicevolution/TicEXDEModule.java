@@ -61,6 +61,8 @@ public class TicEXDEModule extends AddonModule{
                     if(techLevel != null && moffy.ticex.client.draconicevolution.TicEXDEShader.instance != null){
                         moffy.ticex.client.draconicevolution.TicEXDEShader.glUniformBaseColor(moffy.ticex.client.draconicevolution.TicEXDEShader.instance, techLevel, 1F);
                         wrapper.renderQuadsWithConsumer(moffy.ticex.client.draconicevolution.TicEXDEShader.instance.getRenderType(), wrapper.getQuad(), techLevel == TechLevel.CHAOTIC ? 0.9f : wrapper.getRed(), wrapper.getGreen(), wrapper.getBlue());
+                    } else {
+                        wrapper.renderQuadsWithConsumer();
                     }
                 }
             );

@@ -27,9 +27,11 @@ public class TicEXDEUtils {
             case 3:
                 return TechLevel.DRACONIC;
             case 4:
-                return TechLevel.CHAOTIC;    
+                return TechLevel.CHAOTIC;  
+            default:
+                return null;  
         }
-        return null;
+        
     }
     
     public static DETier getTier(TechLevel techLevel){

@@ -38,6 +38,7 @@ public class ModifiableItemCustomRenderer extends BlockEntityWithoutLevelRendere
         super(pBlockEntityRenderDispatcher, pEntityModelSet);
     }
     
+    @SuppressWarnings("deprecation")
     @Override
     @OnlyIn(Dist.CLIENT)
     public void renderByItem(ItemStack pItemStack, ItemDisplayContext pDisplayContext, PoseStack pPoseStack,
@@ -46,13 +47,13 @@ public class ModifiableItemCustomRenderer extends BlockEntityWithoutLevelRendere
         net.minecraft.client.renderer.entity.ItemRenderer defaultRenderer = mc.getItemRenderer();
         
         ToolStack tool = ToolStack.from(pItemStack);
-        BakedModel pModel = defaultRenderer.getModel(pItemStack, null, null, 0);
+        BakedModel pModel = defaultRenderer.getModel(pItemStack, mc.level, mc.player, 0);
         
         List<ShaderToolRenderUtils.RenderTask> renderQueue = new ArrayList<>();
         Set<PartPredicate> seen = new HashSet<>();
 
         pPoseStack.pushPose();
-        pModel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(pPoseStack, pModel, pDisplayContext, false);
+        //pModel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(pPoseStack, pModel, pDisplayContext, true);
         for (var model : pModel.getRenderPasses(pItemStack, true)) {
             for (var rendertype : model.getRenderTypes(pItemStack, true)) {
                 RandomSource randomsource = RandomSource.create();
@@ -102,10 +103,10 @@ public class ModifiableItemCustomRenderer extends BlockEntityWithoutLevelRendere
                     //overlay
                     if(predicate.isModifierId()){
                         addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MODIFIER, provider::renderOverLayer, defaultWrapper));
-                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MODIFIER_WITH_OVERLAY, renderMethod, defaultWrapper));
+                        //addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MODIFIER_WITH_OVERLAY, renderMethod, defaultWrapper));
                     } else if(predicate.isMaterialVariantId()){
                         addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.OVERLAY_MATERIAL, provider::renderOverLayer, defaultWrapper));
-                        addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MATERIAL_WITH_OVERLAY, renderMethod, defaultWrapper));
+                        //addTaskFn.accept(new ShaderToolRenderUtils.RenderTask(ShaderToolRenderUtils.RenderPhase.MATERIAL_WITH_OVERLAY, renderMethod, defaultWrapper));
                     }
                 } else {
                     //normal items

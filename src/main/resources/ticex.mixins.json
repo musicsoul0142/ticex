@@ -10,7 +10,7 @@
     "client": [
         "NormalModifierModelMixin",
         "ToolModelMixin",
-        "ModifiableItemMixin",
+        "ItemRendererMixin",
         "MaterialArmorTextureSupplierMixin"
     ],
     "server": [],

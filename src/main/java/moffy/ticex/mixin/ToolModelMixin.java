@@ -2,11 +2,14 @@ package moffy.ticex.mixin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,9 +25,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Transformation;
 
 import moffy.ticex.TicEX;
+import moffy.ticex.TicEXConfig;
 import moffy.ticex.client.CustomModel;
 import moffy.ticex.client.PartPredicate;
 import moffy.ticex.client.ShaderToolQuad;
+import moffy.ticex.client.ShaderToolRenderUtils;
 import moffy.ticex.modules.TicEXRegistry;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -33,8 +38,10 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.BakedModelWrapper;
 import net.minecraftforge.client.model.IModelBuilder;
 import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
@@ -50,7 +57,9 @@ import slimeknights.tconstruct.library.client.modifiers.IBakedModifierModel;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
+import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 @Mixin(ToolModel.class)
 public class ToolModelMixin {
@@ -73,7 +82,7 @@ public class ToolModelMixin {
         remap = false
     )
     private static void bakeInternalWithShader(IGeometryBakingContext owner, Function<Material, TextureAtlasSprite> spriteGetter, @Nullable Transformation largeTransforms, List<?> parts, Map<ModifierId, IBakedModifierModel> modifierModels, List<?> firstModifiers, List<MaterialVariantId> materials, @Nullable IToolStackView tool, ItemOverrides overrides, CallbackInfoReturnable<BakedModel> cb){
-        if(tool != null){
+        if(tool != null && (TicEXRegistry.TOOL_SHADERS.isToolTarget(tool))){
             Transformation smallTransforms = Transformation.identity();
 
             
@@ -136,12 +145,82 @@ public class ToolModelMixin {
             }
             }));
             if (largeTransforms == null) {
-                cb.setReturnValue(wrapModel(tool, new UniqueGuiModel.Baked(wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build()))));
+                cb.setReturnValue(wrapModel(tool, new UniqueGuiModel.Baked(smallModelBuilder.build(), guiModelBuilder.build())));
             }
             IModelBuilder<?> largeModelBuilder = makeModelBuilder(owner, overrides, particle);
             largeQuads.build(quads -> quads.forEach(largeModelBuilder::addUnculledFace));
-            cb.setReturnValue(new BakedLargeToolModel(wrapModel(tool, largeModelBuilder.build()), wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build())));
+            cb.setReturnValue(wrapModel(tool, new BakedLargeToolModel(largeModelBuilder.build(), smallModelBuilder.build(), guiModelBuilder.build())));
         }
+        
+        /* if(tool != null){
+            Transformation smallTransforms = Transformation.identity();
+
+            
+            ReversedListBuilder<Collection<BakedQuad>> smallQuads = new ReversedListBuilder<>();
+            ItemLayerPixels smallPixels = new ItemLayerPixels();
+            
+            ReversedListBuilder<Collection<BakedQuad>> largeQuads = largeTransforms != null ? new ReversedListBuilder<>() : smallQuads;
+            ItemLayerPixels largePixels = largeTransforms != null ? new ItemLayerPixels() : smallPixels;
+
+            
+            if (!modifierModels.isEmpty()) {
+                addModifierQuads(spriteGetter, modifierModels, firstModifiers, tool, smallQuads::add, smallPixels, smallTransforms, false);
+                
+                if (largeTransforms != null) {
+                    addModifierQuads(spriteGetter, modifierModels, firstModifiers, tool, largeQuads::add, largePixels, largeTransforms, true);
+                }
+            }
+
+            
+            TextureAtlasSprite particle = null;
+            for (int i = parts.size() - 1; i >= 0; i--) {
+                Object part = parts.get(i);
+
+                
+                if (reflectMethod(part.getClass(), "hasMaterials", part).equals(true)) {
+                    
+                    int index = (int)reflectMethod(part.getClass(), "index", part);
+                    MaterialVariantId material = index < materials.size() ? materials.get(index) : IMaterial.UNKNOWN_ID;
+                    TintedSprite materialSprite = MaterialModel.getMaterialSprite(spriteGetter, owner.getMaterial((String)reflectMethod(part.getClass(), "getName", part, false)), material);
+                    particle = materialSprite.sprite();
+
+                    
+                    addShaderQuads(material, MantleItemLayerModel.getQuadsForSprite(materialSprite.color(), -1, materialSprite.sprite(), smallTransforms, materialSprite.emissivity(), smallPixels), smallQuads::add);
+                    if (largeTransforms != null) {
+                        addShaderQuads(material, MaterialModel.getQuadsForMaterial(spriteGetter, owner.getMaterial((String)reflectMethod(part.getClass(), "getName", part, true)), material, -1, largeTransforms, largePixels), largeQuads::add);
+                    }
+                } else {
+                        
+                        particle = spriteGetter.apply(owner.getMaterial((String)reflectMethod(part.getClass(), "getName", part, false)));
+                        
+                        smallQuads.add(MantleItemLayerModel.getQuadsForSprite(-1, -1, particle, smallTransforms, 0, smallPixels));
+                    if (largeTransforms != null) {
+                        largeQuads.add(MantleItemLayerModel.getQuadsForSprite(-1, -1, spriteGetter.apply(owner.getMaterial((String)reflectMethod(part.getClass(), "getName", part, true))), largeTransforms, 0, largePixels));
+                    }
+                }
+            }
+            
+            if (particle == null) {
+            particle = spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, MissingTextureAtlasSprite.getLocation()));
+            TConstruct.LOG.error("Created tool model without a particle sprite, this means it somehow has no parts. This should not be possible");
+            }
+
+            
+            IModelBuilder<?> smallModelBuilder = makeModelBuilder(owner, overrides, particle);
+            IModelBuilder<?> guiModelBuilder = makeModelBuilder(owner, overrides, particle);
+            smallQuads.build(quads -> quads.forEach(quad -> {
+            smallModelBuilder.addUnculledFace(quad);
+            if (quad.getDirection() == Direction.SOUTH) {
+                guiModelBuilder.addUnculledFace(quad);
+            }
+            }));
+            if (largeTransforms == null) {
+                cb.setReturnValue(wrapWrapperModel(tool, new UniqueGuiModel.Baked(wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build()))));
+            }
+            IModelBuilder<?> largeModelBuilder = makeModelBuilder(owner, overrides, particle);
+            largeQuads.build(quads -> quads.forEach(largeModelBuilder::addUnculledFace));
+            cb.setReturnValue(wrapWrapperModel(tool, new BakedLargeToolModel(wrapModel(tool, largeModelBuilder.build()), wrapModel(tool, smallModelBuilder.build()), wrapModel(tool, guiModelBuilder.build()))));
+        } */
     }
 
     @Inject(
@@ -202,6 +281,13 @@ public class ToolModelMixin {
     private static BakedModel wrapModel(IToolStackView tool, BakedModel originalModel){
         if(tool != null){
             return new CustomModel(originalModel);
+        }
+        return originalModel;
+    }
+
+    private static BakedModel wrapWrapperModel(IToolStackView tool, BakedModel originalModel){
+        if(tool != null){
+            return new CustomModel.Wrapper(originalModel);
         }
         return originalModel;
     }
